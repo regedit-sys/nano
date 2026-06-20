@@ -13,6 +13,9 @@ const t = TRANSLATIONS[locale] || TRANSLATIONS.en;
 
 <html lang={locale}>
   <head>
+    <script is:inline define:vars={{ config: poprinkConfig }}>
+      window.__POPRINK_CONFIG__ = config;
+    </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/icons/poprink.svg" />
