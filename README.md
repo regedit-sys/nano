@@ -12,6 +12,12 @@ minimalist web interface for poprink
 
 ## commands
 
+### running locally
+
+you can run the project locally using either **pnpm** or **bun**:
+
+#### pnpm
+
 install dependencies:
 ```bash
 pnpm install
@@ -32,9 +38,39 @@ run local development server:
 pnpm dev
 ```
 
+#### bun
+
+install dependencies:
+```bash
+bun install
+```
+
+configure application:
+```bash
+node setup.js
+```
+
+compile application:
+```bash
+bun run build
+```
+
+run local development server:
+```bash
+bun run dev
+```
+
 ## docker
 
-### host with docker
+### host with docker (no coding needed)
+
+pull and run the pre-built image directly:
+```bash
+docker pull ghcr.io/mohameodo/nano:latest
+docker run -p 3000:3000 -e SITE_NAME="my nano site" ghcr.io/mohameodo/nano:latest
+```
+
+### build from source
 
 ```bash
 docker build -t nano .
