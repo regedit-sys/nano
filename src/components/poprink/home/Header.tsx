@@ -109,85 +109,91 @@ export default function Header({
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        <div
-          className="nano-theme-toggle-pill"
-          onClick={() => setThemeMode(themeMode === "dark" ? "light" : "dark")}
-        >
-          <div className="nano-theme-toggle-icon">
-            <FaSun />
-          </div>
-          <div className="nano-theme-toggle-icon">
-            <FaMoon />
-          </div>
+        {poprinkConfig.features.header?.showThemeToggle !== false && (
           <div
-            className="nano-theme-toggle-knob"
-            style={{
-              transform: themeMode === "dark" ? "translateX(32px)" : "translateX(0)",
-            }}
+            className="nano-theme-toggle-pill"
+            onClick={() => setThemeMode(themeMode === "dark" ? "light" : "dark")}
           >
-            {themeMode === "dark" ? (
-              <FaMoon className="nano-theme-toggle-knob-icon" />
-            ) : (
-              <FaSun className="nano-theme-toggle-knob-icon" />
+            <div className="nano-theme-toggle-icon">
+              <FaSun />
+            </div>
+            <div className="nano-theme-toggle-icon">
+              <FaMoon />
+            </div>
+            <div
+              className="nano-theme-toggle-knob"
+              style={{
+                transform: themeMode === "dark" ? "translateX(32px)" : "translateX(0)",
+              }}
+            >
+              {themeMode === "dark" ? (
+                <FaMoon className="nano-theme-toggle-knob-icon" />
+              ) : (
+                <FaSun className="nano-theme-toggle-knob-icon" />
+              )}
+            </div>
+          </div>
+        )}
+
+        {poprinkConfig.features.header?.showColorPicker !== false && (
+          <div ref={themeRef} style={{ position: "relative" }}>
+            <button className="nano-btn-full nano-palette-btn" onClick={() => setThemeOpen((v) => !v)}>
+              <FaPalette style={{ fontSize: "0.85rem" }} />
+            </button>
+
+            {themeOpen && (
+              <div className="nano-theme-dropdown">
+                <div className="nano-theme-header">
+                  <div className="nano-theme-title-container">
+                    <span className="nano-theme-accent-bar" />
+                    <span className="nano-theme-title">Theme Color</span>
+                  </div>
+                  <div className="nano-theme-controls">
+                    <button
+                      className="nano-theme-reset-btn"
+                      onClick={() => setThemeHue(poprinkConfig.theme.defaultHue)}
+                    >
+                      <FaUndo />
+                    </button>
+                    <span className="nano-theme-badge">{themeHue}</span>
+                  </div>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="360"
+                  value={themeHue}
+                  onChange={(e) => setThemeHue(Number(e.target.value))}
+                  className="nano-hue-slider"
+                />
+              </div>
             )}
           </div>
-        </div>
+        )}
 
-        <div ref={themeRef} style={{ position: "relative" }}>
-          <button className="nano-btn-full nano-palette-btn" onClick={() => setThemeOpen((v) => !v)}>
-            <FaPalette style={{ fontSize: "0.85rem" }} />
-          </button>
+        {poprinkConfig.features.header?.showLangSelector !== false && (
+          <div ref={langRef} className="nano-lang-selector">
+            <button className="nano-btn-full nano-lang-btn" onClick={() => setLangOpen((v) => !v)}>
+              <FaGlobe style={{ fontSize: "0.85rem" }} />
+              <span>{LOCALE_LABELS[locale] ?? locale.toUpperCase()}</span>
+            </button>
 
-          {themeOpen && (
-            <div className="nano-theme-dropdown">
-              <div className="nano-theme-header">
-                <div className="nano-theme-title-container">
-                  <span className="nano-theme-accent-bar" />
-                  <span className="nano-theme-title">Theme Color</span>
-                </div>
-                <div className="nano-theme-controls">
+            {langOpen && (
+              <div className="nano-lang-dropdown">
+                {Object.keys(translations).map((loc) => (
                   <button
-                    className="nano-theme-reset-btn"
-                    onClick={() => setThemeHue(poprinkConfig.theme.defaultHue)}
+                    key={loc}
+                    className={`nano-lang-option ${loc === locale ? "nano-lang-option-active" : ""}`}
+                    onClick={() => { setLocale(loc); setLangOpen(false); }}
                   >
-                    <FaUndo />
+                    <span>{LOCALE_LABELS[loc] ?? loc}</span>
+                    {loc === locale && <FaCheck style={{ fontSize: "0.7rem", opacity: 0.7 }} />}
                   </button>
-                  <span className="nano-theme-badge">{themeHue}</span>
-                </div>
+                ))}
               </div>
-              <input
-                type="range"
-                min="0"
-                max="360"
-                value={themeHue}
-                onChange={(e) => setThemeHue(Number(e.target.value))}
-                className="nano-hue-slider"
-              />
-            </div>
-          )}
-        </div>
-
-        <div ref={langRef} className="nano-lang-selector">
-          <button className="nano-btn-full nano-lang-btn" onClick={() => setLangOpen((v) => !v)}>
-            <FaGlobe style={{ fontSize: "0.85rem" }} />
-            <span>{LOCALE_LABELS[locale] ?? locale.toUpperCase()}</span>
-          </button>
-
-          {langOpen && (
-            <div className="nano-lang-dropdown">
-              {Object.keys(translations).map((loc) => (
-                <button
-                  key={loc}
-                  className={`nano-lang-option ${loc === locale ? "nano-lang-option-active" : ""}`}
-                  onClick={() => { setLocale(loc); setLangOpen(false); }}
-                >
-                  <span>{LOCALE_LABELS[loc] ?? loc}</span>
-                  {loc === locale && <FaCheck style={{ fontSize: "0.7rem", opacity: 0.7 }} />}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </header>
   )

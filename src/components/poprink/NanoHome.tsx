@@ -273,8 +273,12 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
     ? `bg-style-${poprinkConfig.theme.bgStyle}`
     : ""
 
+  const wrapperStyle = poprinkConfig.theme.customBg
+    ? { backgroundImage: `url(${poprinkConfig.theme.customBg})`, backgroundSize: "cover", backgroundPosition: "center" }
+    : undefined
+
   return (
-    <div className={`nano-wrapper ${bgStyleClass}`}>
+    <div className={`nano-wrapper ${bgStyleClass}`} style={wrapperStyle}>
       <Header
         initialUser={currentUser}
         handleLogout={handleLogout}

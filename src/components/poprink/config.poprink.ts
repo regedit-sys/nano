@@ -22,6 +22,7 @@ export interface PoprinkConfig {
       bgLight: string;
     };
     bgStyle?: "dots" | "lines" | "thin-lines" | "text" | "grain" | "none";
+    customBg?: string;
   };
   logo: {
     text: string;
@@ -44,6 +45,11 @@ export interface PoprinkConfig {
     showTrending: boolean;
     showQuickTags: boolean;
     enableAuth: boolean;
+    header: {
+      showThemeToggle: boolean;
+      showColorPicker: boolean;
+      showLangSelector: boolean;
+    };
     videoPlayer: {
       autoPlay: boolean;
       defaultServer: string;
@@ -62,6 +68,7 @@ export const poprinkConfig: PoprinkConfig = {
       bgLight: getEnv("COLOR_BG_LIGHT", "#f8f9fa"),
     },
     bgStyle: getEnv("THEME_BG_STYLE", "none") as any,
+    customBg: getEnv("THEME_CUSTOM_BG", ""),
   },
   logo: {
     text: getEnv("SITE_NAME", "poprink"),
@@ -84,6 +91,11 @@ export const poprinkConfig: PoprinkConfig = {
     showTrending: getEnv("SHOW_TRENDING", false),
     showQuickTags: getEnv("SHOW_QUICK_TAGS", false),
     enableAuth: getEnv("ENABLE_AUTH", false),
+    header: {
+      showThemeToggle: getEnv("HEADER_SHOW_THEME_TOGGLE", true),
+      showColorPicker: getEnv("HEADER_SHOW_COLOR_PICKER", true),
+      showLangSelector: getEnv("HEADER_SHOW_LANG_SELECTOR", true),
+    },
     videoPlayer: {
       autoPlay: getEnv("AUTOPLAY", true),
       defaultServer: getEnv("DEFAULT_SERVER", "vidzeeWorks"),
