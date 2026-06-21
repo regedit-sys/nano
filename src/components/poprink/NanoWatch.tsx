@@ -78,6 +78,7 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
   const [scraping, setScraping] = useState(false)
   const [msgIndex, setMsgIndex] = useState(0)
   const [subtitles, setSubtitles] = useState<any[]>([])
+  const [retryTrigger, setRetryTrigger] = useState(0)
   const playerType = poprinkConfig.features.videoPlayer.useVidstack ? "vidstack" : "default"
 
   useEffect(() => {
@@ -297,7 +298,7 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
     return () => {
       cancelled = true
     }
-  }, [id, type, currentSeason, currentEpisode, activeServer, localFolderHandle])
+  }, [id, type, currentSeason, currentEpisode, activeServer, localFolderHandle, retryTrigger])
 
   const handleEpisodeSelect = (epNum: number) => {
     setCurrentEpisode(epNum)
@@ -383,13 +384,7 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
     )
   }
 
-  if (!playerUrl) {
-    return (
-      <div className="tvko-loading">
-        <div style={{ color: '#fff', fontSize: '18px' }}>No stream available</div>
-      </div>
-    )
-  }
+
 
   const handleConnectFolder = async () => {
     try {
@@ -438,9 +433,50 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
     }
 
     if (!playerUrl) {
+      const otherServers = SERVERS.filter(s => s.id !== activeServer);
       return (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", backgroundColor: "#0a0a0a", color: "#fff" }}>
-          <div style={{ fontSize: "16px", opacity: 0.7 }}>No stream available</div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", backgroundColor: "#0a0a0a", color: "#fff", gap: "20px", padding: "20px" }}>
+          <div style={{ fontSize: "18px", fontWeight: 600, color: "var(--accent-color)" }}>No stream available</div>
+          <p style={{ fontSize: "14px", opacity: 0.7, maxWidth: "420px", textAlign: "center", margin: 0, lineHeight: 1.5 }}>
+            We couldn't resolve a streaming source on <strong>{SERVERS.find(s => s.id === activeServer)?.name || activeServer}</strong>.
+          </p>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", justifyContent: "center", marginTop: "8px" }}>
+            <button
+              onClick={() => setRetryTrigger(prev => prev + 1)}
+              style={{
+                padding: "10px 20px",
+                fontSize: "13px",
+                fontWeight: 600,
+                backgroundColor: "var(--accent-color)",
+                color: "#000",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                transition: "background-color 0.2s"
+              }}
+            >
+              Try Again
+            </button>
+            {otherServers.map(server => (
+              <button
+                key={server.id}
+                onClick={() => setActiveServer(server.id)}
+                style={{
+                  padding: "10px 20px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  backgroundColor: "rgba(255,255,255,0.08)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  transition: "background-color 0.2s"
+                }}
+              >
+                Use {server.name}
+              </button>
+            ))}
+          </div>
         </div>
       )
     }
