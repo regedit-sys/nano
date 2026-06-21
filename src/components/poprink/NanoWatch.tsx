@@ -315,16 +315,7 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
       ? `https://image.tmdb.org/t/p/w500${info.poster}`
       : ""
     return (
-      <div style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 200,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#0a0a0a",
-      }}>
+      <div suppressHydrationWarning className="nano-loading-overlay">
         {posterUrl && (
           <>
             <div style={{
