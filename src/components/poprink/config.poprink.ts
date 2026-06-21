@@ -52,6 +52,8 @@ export interface PoprinkConfig {
     showTrending: boolean;
     showQuickTags: boolean;
     enableAuth: boolean;
+    enableContinueWatching?: boolean;
+    enableWatchlist?: boolean;
     header: {
       showThemeToggle: boolean;
       showColorPicker: boolean;
@@ -103,6 +105,8 @@ const configObject: PoprinkConfig = {
     showTrending: getEnv("SHOW_TRENDING", false),
     showQuickTags: getEnv("SHOW_QUICK_TAGS", false),
     enableAuth: getEnv("ENABLE_AUTH", false),
+    enableContinueWatching: getEnv("ENABLE_CONTINUE_WATCHING", false),
+    enableWatchlist: getEnv("ENABLE_WATCHLIST", false),
     header: {
       showThemeToggle: getEnv("HEADER_SHOW_THEME_TOGGLE", true),
       showColorPicker: getEnv("HEADER_SHOW_COLOR_PICKER", true),
@@ -111,7 +115,7 @@ const configObject: PoprinkConfig = {
     videoPlayer: {
       autoPlay: getEnv("AUTOPLAY", true),
       defaultServer: getEnv("DEFAULT_SERVER", "vidzeeWorks"),
-      useVidstack: getEnv("USE_VIDSTACK", true),
+      useVidstack: getEnv("USE_VIDSTACK", false),
       servers: [
         { id: "vidzeeWorks", name: "VidZee" },
       ],

@@ -41,6 +41,13 @@ export default defineConfig({
           : {}),
       },
     },
+    optimizeDeps: {
+      include: [
+        '@vidstack/react',
+        '@vidstack/react/player/layouts/default',
+        'hls.js',
+      ],
+    },
     build: {
       rollupOptions: {
         external: [

@@ -6,6 +6,7 @@ import Settings from "./video-player/settings"
 import "./nano.css"
 import { providerList } from "../../lib/nano/nano.poprink"
 import { poprinkConfig } from "./config.poprink"
+import { TRANSLATIONS } from "./locales/translations"
 
 interface NanoWatchProps {
   id: string
@@ -17,6 +18,8 @@ interface NanoWatchProps {
 interface MediaInfo {
   title: string
   overview: string
+  poster?: string
+  backdrop?: string
   seasons?: SeasonInfo[]
 }
 
@@ -36,6 +39,7 @@ const SERVERS = providerList
   .map((p) => ({ id: p.key, name: p.name }))
 
 export default function NanoWatch({ id, type, season, episode }: NanoWatchProps) {
+  const [locale, setLocale] = useState(poprinkConfig.metadata.defaultLocale || "en")
   const [info, setInfo] = useState<MediaInfo | null>(null)
   const [episodes, setEpisodes] = useState<EpisodeInfo[]>([])
   const [currentSeason, setCurrentSeason] = useState(Number(season) || 1)
@@ -51,7 +55,24 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
   const [showEpisodes, setShowEpisodes] = useState(false)
   const [blocked, setBlocked] = useState(false)
   const [scraping, setScraping] = useState(false)
+  const [msgIndex, setMsgIndex] = useState(0)
+  const [subtitles, setSubtitles] = useState<any[]>([])
   const playerType = poprinkConfig.features.videoPlayer.useVidstack ? "vidstack" : "default"
+
+  useEffect(() => {
+    const saved = localStorage.getItem("poprink-locale")
+    if (saved) setLocale(saved)
+  }, [])
+
+  const messages = ["poprink", TRANSLATIONS[locale]?.searching || "searching", TRANSLATIONS[locale]?.loading || "loading"]
+
+  useEffect(() => {
+    if (!loading && !scraping) return
+    const interval = setInterval(() => {
+      setMsgIndex((prev) => (prev + 1) % messages.length)
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [loading, scraping, messages.length])
 
   useEffect(() => {
     let cancelled = false
@@ -71,6 +92,8 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
         setInfo({
           title: data.title || data.name || "",
           overview: data.overview || "",
+          poster: data.poster_path || data.poster || "",
+          backdrop: data.backdrop_path || data.backdrop || "",
           seasons: seasons
             .filter((s: any) => s.season_number > 0)
             .map((s: any) => ({
@@ -89,6 +112,25 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
       cancelled = true
     }
   }, [id, type])
+
+  useEffect(() => {
+    if (!info?.title || !poprinkConfig.features.enableContinueWatching) return
+    const saved = localStorage.getItem("poprink-continue-watching")
+    let list = saved ? JSON.parse(saved) : []
+    const watchItem = {
+      id: Number(id),
+      type,
+      title: info.title,
+      poster_path: info.poster || null,
+      season: type === "tv" ? currentSeason : undefined,
+      episode: type === "tv" ? currentEpisode : undefined,
+      updatedAt: new Date().getTime(),
+    }
+    list = list.filter((item: any) => !(item.id === watchItem.id && item.type === watchItem.type))
+    list.unshift(watchItem)
+    list = list.slice(0, 12)
+    localStorage.setItem("poprink-continue-watching", JSON.stringify(list))
+  }, [id, type, info, currentSeason, currentEpisode])
 
   useEffect(() => {
     if (type !== "tv") return
@@ -133,12 +175,14 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
         setPlayerUrl(data.url)
         setIsDirectPlayer(data.isDirect || false)
         setIsM3U8(data.isM3U8 || false)
+        setSubtitles(data.subtitles || [])
         setScraping(false)
       } catch {
         if (!cancelled) {
           setPlayerUrl("")
           setIsDirectPlayer(false)
           setIsM3U8(false)
+          setSubtitles([])
           setScraping(false)
         }
       }
@@ -161,8 +205,57 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
   }
 
   if (loading || scraping) {
+    const posterUrl = info?.poster
+      ? `https://image.tmdb.org/t/p/w500${info.poster}`
+      : ""
     return (
-      <div style={{ width: "100vw", height: "100vh", backgroundColor: "#000" }} />
+      <div style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 200,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#0a0a0a",
+      }}>
+        {posterUrl && (
+          <>
+            <div style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: `url(${posterUrl})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center center",
+              backgroundRepeat: "no-repeat",
+              opacity: 0.3,
+              filter: "blur(20px)",
+              transform: "scale(1.1)",
+              zIndex: 0,
+            }} />
+            <div style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(to bottom, rgba(10,10,12,0.6) 0%, rgba(10,10,12,0.95) 100%)",
+              zIndex: 1,
+            }} />
+          </>
+        )}
+        <div style={{ position: "relative", zIndex: 2, textAlign: "center" }}>
+          <h1 
+            className="nano-shimmer-text"
+            style={{
+              fontSize: "3.5rem",
+              fontWeight: 900,
+              letterSpacing: "-0.05em",
+              textTransform: "lowercase",
+              margin: 0,
+            }}
+          >
+            {messages[msgIndex]}
+          </h1>
+        </div>
+      </div>
     )
   }
 
@@ -216,6 +309,7 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
         isTv={type === "tv"}
         showEpisodes={showEpisodes}
         setShowEpisodes={setShowEpisodes}
+        hideExtra={isDirectPlayer}
       />
 
       <div className="nano-watch-content" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
@@ -231,6 +325,13 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
             isTv={type === "tv"}
             showEpisodes={showEpisodes}
             setShowEpisodes={setShowEpisodes}
+            info={info}
+            currentSeason={currentSeason}
+            currentEpisode={currentEpisode}
+            episodes={episodes}
+            handleSeasonChange={handleSeasonChange}
+            handleEpisodeSelect={handleEpisodeSelect}
+            subtitles={subtitles}
           />
         ) : (
           <Player

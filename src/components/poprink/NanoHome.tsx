@@ -65,6 +65,35 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
   const [loginOpen, setLoginOpen] = useState(false)
   const [termsOpen, setTermsOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState(initialUser)
+  const [continueWatching, setContinueWatching] = useState<any[]>([])
+  const [watchlist, setWatchlist] = useState<any[]>([])
+
+  const loadLocalLists = () => {
+    if (poprinkConfig.features.enableContinueWatching) {
+      const savedCW = localStorage.getItem("poprink-continue-watching")
+      setContinueWatching(savedCW ? JSON.parse(savedCW) : [])
+    }
+    if (poprinkConfig.features.enableWatchlist) {
+      const savedWL = localStorage.getItem("poprink-watchlist")
+      setWatchlist(savedWL ? JSON.parse(savedWL) : [])
+    }
+  }
+
+  useEffect(() => {
+    loadLocalLists()
+  }, [])
+
+  const handleLocalCardClick = (item: any) => {
+    if (item.type === "tv") {
+      window.location.href = `/watch/${item.id}?type=tv&season=${item.season || 1}&episode=${item.episode || 1}`
+    } else {
+      window.location.href = `/watch/${item.id}?type=movie`
+    }
+  }
+
+  const handleWatchlistCardClick = (item: any) => {
+    window.location.href = `/watch/${item.id}?type=${item.media_type}`
+  }
 
   const [themeHue, setThemeHue] = useState(() => {
     if (typeof window !== "undefined") {
@@ -287,7 +316,13 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
     : ""
 
   const wrapperStyle = poprinkConfig.theme.customBg
-    ? { backgroundImage: `url(${poprinkConfig.theme.customBg})`, backgroundSize: "cover", backgroundPosition: "center" }
+    ? {
+        backgroundImage: `url(${poprinkConfig.theme.customBg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed"
+      }
     : undefined
 
   return (
@@ -465,6 +500,37 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
             </div>
           )}
 
+          {poprinkConfig.features.enableContinueWatching && continueWatching.length > 0 && (
+            <div style={{ marginBottom: "32px" }}>
+              <h2 className="nano-trending-title">Continue Watching</h2>
+              <MediaGrid
+                results={continueWatching.map(item => ({
+                  id: item.id,
+                  title: item.title,
+                  poster_path: item.poster_path,
+                  media_type: item.type,
+                }))}
+                t={t}
+                onClick={handleLocalCardClick}
+                getReleaseYear={() => null}
+                onWatchlistChange={loadLocalLists}
+              />
+            </div>
+          )}
+
+          {poprinkConfig.features.enableWatchlist && watchlist.length > 0 && (
+            <div style={{ marginBottom: "32px" }}>
+              <h2 className="nano-trending-title">My List</h2>
+              <MediaGrid
+                results={watchlist}
+                t={t}
+                onClick={handleWatchlistCardClick}
+                getReleaseYear={getReleaseYear}
+                onWatchlistChange={loadLocalLists}
+              />
+            </div>
+          )}
+
           {poprinkConfig.features.showTrending && trending.length > 0 && (
             <>
               <h2 className="nano-trending-title">Trending Now</h2>
@@ -473,18 +539,30 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
                 t={t}
                 onClick={handleCardClick}
                 getReleaseYear={getReleaseYear}
+                onWatchlistChange={loadLocalLists}
               />
             </>
           )}
 
           <p className="nano-home-desc">
             {t.homeDesc}
-            <span
-              className="nano-terms-link"
-              onClick={() => setTermsOpen(true)}
-              style={{ marginLeft: "6px", display: "inline-flex", alignItems: "center", gap: "2px" }}
-            >
-              {t.termsBtn} →
+            <span style={{ marginLeft: "6px", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+              <a 
+                href="https://github.com/mohameodo/nano" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="nano-terms-link"
+              >
+                {t.sourceCode}
+              </a>
+              <span style={{ opacity: 0.5 }}>|</span>
+              <span
+                className="nano-terms-link"
+                onClick={() => setTermsOpen(true)}
+                style={{ display: "inline-flex", alignItems: "center", gap: "2px" }}
+              >
+                {t.termsBtn} →
+              </span>
             </span>
           </p>
         </div>
@@ -510,7 +588,7 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
-                  height: "54px",
+                  height: "60px",
                   padding: "0 24px",
                   borderRadius: "9999px",
                   fontSize: "0.85rem",
@@ -526,8 +604,9 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
                   className="nano-lang-dropdown"
                   style={{
                     position: "absolute",
-                    right: 0,
-                    top: "42px",
+                    insetInlineEnd: 0,
+                    top: "100%",
+                    marginTop: "4px",
                     zIndex: 100,
                     minWidth: "120px",
                     display: "flex",
@@ -581,6 +660,7 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
                 t={t}
                 onClick={handleCardClick}
                 getReleaseYear={getReleaseYear}
+                onWatchlistChange={loadLocalLists}
               />
 
               {totalPages > 1 && (

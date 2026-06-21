@@ -8,3 +8,7 @@ dist
 .DS_Store
 *.log
 .vercel
+
+# Private sources/plugins folder
+src/shade/*
+!src/shade/placeholder.ts

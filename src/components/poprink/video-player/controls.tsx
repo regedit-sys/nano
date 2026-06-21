@@ -16,6 +16,7 @@ interface ControlsProps {
   isTv?: boolean;
   showEpisodes?: boolean;
   setShowEpisodes?: (show: boolean) => void;
+  hideExtra?: boolean;
 }
 
 export default function Controls({
@@ -26,6 +27,7 @@ export default function Controls({
   isTv = false,
   showEpisodes = false,
   setShowEpisodes,
+  hideExtra = false,
 }: ControlsProps) {
   const [serverOpen, setServerOpen] = useState(false);
   const serverRef = useRef<HTMLDivElement>(null);
@@ -54,7 +56,7 @@ export default function Controls({
       <span className="nano-watch-title">{displayTitle}</span>
 
       <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "12px" }}>
-        {isTv && setShowEpisodes && (
+        {!hideExtra && isTv && setShowEpisodes && (
           <button
             className={`nano-watch-back-btn ${showEpisodes ? "active" : ""}`}
             onClick={() => setShowEpisodes(!showEpisodes)}
@@ -76,7 +78,7 @@ export default function Controls({
           </button>
         )}
 
-        {servers.length > 0 && setActiveServer && (
+        {!hideExtra && servers.length > 0 && setActiveServer && (
           <div ref={serverRef} style={{ position: "relative" }}>
             <button
               className="nano-watch-back-btn"

@@ -73,7 +73,7 @@ export default function SearchForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className={`nano-search-form ${compact ? "nano-search-form-compact" : ""}`}>
+    <form onSubmit={onSubmit} className={`nano-search-form ${compact ? "nano-search-form-compact" : ""}`} style={{ height: "60px" }}>
       <input
         type="text"
         placeholder={placeholder}

@@ -16,6 +16,7 @@ interface MediaGridProps {
   t: Record<string, string>
   onClick: (item: MediaItem) => void
   getReleaseYear: (item: MediaItem) => number | null
+  onWatchlistChange?: () => void
 }
 
 export default function MediaGrid({
@@ -23,6 +24,7 @@ export default function MediaGrid({
   t,
   onClick,
   getReleaseYear,
+  onWatchlistChange,
 }: MediaGridProps) {
   return (
     <div className="nano-grid">
@@ -33,6 +35,7 @@ export default function MediaGrid({
           t={t}
           onClick={onClick}
           getReleaseYear={getReleaseYear}
+          onWatchlistChange={onWatchlistChange}
         />
       ))}
     </div>

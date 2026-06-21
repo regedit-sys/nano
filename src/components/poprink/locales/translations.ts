@@ -31,6 +31,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "unlimited series & films",
     slogan5: "poprink your library",
     search: "search",
+    searching: "searching",
+    loading: "loading",
+    sourceCode: "source code",
   },
   es: {
     language: "Idioma",
@@ -64,6 +67,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "series y películas ilimitadas",
     slogan5: "poprink tu biblioteca",
     search: "buscar",
+    searching: "buscando",
+    loading: "cargando",
+    sourceCode: "código fuente",
   },
   ko: {
     language: "언어",
@@ -97,6 +103,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "무제한 드라마 & 영화",
     slogan5: "poprink 라이브러리",
     search: "검색",
+    searching: "검색 중",
+    loading: "로딩 중",
+    sourceCode: "소스 코드",
   },
   ar: {
     language: "اللغة",
@@ -130,6 +139,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "أفلام ومسلسلات غير محدودة",
     slogan5: "poprink مكتبتك الخاصة",
     search: "بحث",
+    searching: "جاري البحث",
+    loading: "جاري التحميل",
+    sourceCode: "كود المصدر",
   },
   ja: {
     language: "言語",
@@ -163,6 +175,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "映画もアニメも見放題",
     slogan5: "poprink ライブラリ",
     search: "検索",
+    searching: "検索中",
+    loading: "読み込み中",
+    sourceCode: "ソースコード",
   },
   zh: {
     language: "语言",
@@ -196,6 +211,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "无限电影与电视剧",
     slogan5: "poprink 专属媒体库",
     search: "搜索",
+    searching: "正在搜索",
+    loading: "正在加载",
+    sourceCode: "源代码",
   },
   de: {
     language: "Sprache",
@@ -229,6 +247,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "unbegrenzt filme & serien",
     slogan5: "poprink deine bibliothek",
     search: "suchen",
+    searching: "suchen",
+    loading: "laden",
+    sourceCode: "Quellcode",
   },
   ru: {
     language: "Язык",
@@ -262,6 +283,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "кино и сериалы без границ",
     slogan5: "poprink ваша библиотека",
     search: "поиск",
+    searching: "поиск",
+    loading: "загрузка",
+    sourceCode: "исходный код",
   },
   hi: {
     language: "भाषा",
@@ -295,6 +319,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "असीमित फिल्में और सीरीज़",
     slogan5: "poprink आपकी लाइब्रेरी",
     search: "खोजें",
+    searching: "खोज रहे हैं",
+    loading: "लोड हो रहा है",
+    sourceCode: "स्रोत कोड",
   },
   th: {
     language: "ภาษา",
@@ -328,6 +355,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "หนังและซีรีส์ไม่อั้น",
     slogan5: "poprink คลังส่วนตัวของคุณ",
     search: "ค้นหา",
+    searching: "กำลังค้นหา",
+    loading: "กำลังโหลด",
+    sourceCode: "ซอร์สโค้ด",
   },
   pl: {
     language: "Język",
@@ -361,6 +391,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "nielimitowane filmy i seriale",
     slogan5: "poprink twoja biblioteka",
     search: "szukaj",
+    searching: "szukanie",
+    loading: "ładowanie",
+    sourceCode: "kod źródłowy",
   },
   tl: {
     language: "Wika",
@@ -394,6 +427,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "walang limitasyong palabas",
     slogan5: "poprink iyong library",
     search: "hanapin",
+    searching: "naghahanap",
+    loading: "naglo-load",
+    sourceCode: "source code",
   },
   vi: {
     language: "Ngôn ngữ",
@@ -427,6 +463,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "phim và series vô tận",
     slogan5: "poprink thư viện của bạn",
     search: "tìm kiếm",
+    searching: "đang tìm kiếm",
+    loading: "đang tải",
+    sourceCode: "mã nguồn",
   },
   nl: {
     language: "Taal",
@@ -460,6 +499,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "onbeperkt films & series",
     slogan5: "poprink jouw bibliotheek",
     search: "zoeken",
+    searching: "zoeken",
+    loading: "laden",
+    sourceCode: "broncode",
   },
   tr: {
     language: "Dil",
@@ -493,6 +535,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "sınırsız film ve dizi",
     slogan5: "poprink kütüphaneniz",
     search: "ara",
+    searching: "aranıyor",
+    loading: "yükleniyor",
+    sourceCode: "kaynak kod",
   },
   genz: {
     language: "Vibe check",
@@ -526,6 +571,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "endless cinema list locked in",
     slogan5: "poprink clean setup",
     search: "search fr",
+    searching: "searching fr",
+    loading: "loading fr",
+    sourceCode: "source code fr",
   },
   no: {
     language: "Språk",
@@ -559,5 +607,8 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     slogan4: "ubegrenset filmer og serier",
     slogan5: "poprink ditt bibliotek",
     search: "søk",
+    searching: "søker",
+    loading: "laster",
+    sourceCode: "kildekode",
   },
 };
