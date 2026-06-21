@@ -8,7 +8,7 @@ if (poprinkConfig.features.enableAuth && !user) {
 }
 ---
 
-<html lang={poprinkConfig.metadata.defaultLocale || 'en'}>
+<html lang={poprinkConfig.metadata.defaultLocale || 'en'} dir={(poprinkConfig.metadata.defaultLocale || 'en') === 'ar' ? 'rtl' : 'ltr'}>
   <head>
     <script is:inline define:vars={{ config: poprinkConfig }}>
       window.__POPRINK_CONFIG__ = config;

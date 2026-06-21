@@ -1,9 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@200..1000&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
 html, body, button, input, select, textarea {
-  font-family: 'Roboto', sans-serif;
+  font-family: var(--site-font, 'Outfit', 'Roboto', sans-serif);
+}
+
+html[lang="ar"],
+html[lang="ar"] body,
+html[lang="ar"] button,
+html[lang="ar"] input,
+html[lang="ar"] select,
+html[lang="ar"] textarea {
+  font-family: 'Cairo', 'Roboto', sans-serif !important;
+}
+
+html[lang="ar"] .font-pencerio,
+html[lang="ar"] .font-telma,
+html[lang="ar"] .font-array,
+html[lang="ar"] .nano-title,
+html[lang="ar"] .nano-home-title-large {
+  font-family: 'Amiri', serif !important;
 }
 
 ::-webkit-scrollbar {
@@ -74,7 +93,8 @@ html, body, button, input, select, textarea {
   --accent-color: hsl(var(--theme-hue), 75%, 70%);
   --accent-color-hover: hsl(var(--theme-hue), 75%, 60%);
   --accent-color-gradient-end: hsl(calc(var(--theme-hue) - 35), 75%, 60%);
-  --header-bg: rgba(22, 22, 26, 0.6);
+  --header-bg: transparent;
+  --search-bg: rgba(255, 255, 255, 0.15);
 }
 
 [data-theme="light"] {
@@ -88,13 +108,14 @@ html, body, button, input, select, textarea {
   --btn-bg-hover: rgba(0, 0, 0, 0.12);
   --btn-bg-active: rgba(0, 0, 0, 0.18);
   --border-color: color-mix(in srgb, var(--bg-color) 95%, #000000 5%);
-  --watermark-color: hsla(var(--theme-hue), 70%, 58%, 0.05);
+  --watermark-color: rgba(0, 0, 0, 0.12);
   --bg-color-fade-85: rgba(248, 249, 250, 0.85);
   --bg-color-fade-40: rgba(248, 249, 250, 0.4);
   --accent-color: hsl(var(--theme-hue), 70%, 58%);
   --accent-color-hover: hsl(var(--theme-hue), 70%, 48%);
   --accent-color-gradient-end: hsl(calc(var(--theme-hue) - 35), 70%, 48%);
-  --header-bg: rgba(248, 249, 250, 0.6);
+  --header-bg: transparent;
+  --search-bg: rgba(0, 0, 0, 0.12);
 }
 
 .font-array {
@@ -167,8 +188,8 @@ html, body, button, input, select, textarea {
   top: 0;
   z-index: 20;
   background-color: var(--header-bg);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .nano-logo-group {
@@ -187,8 +208,12 @@ html, body, button, input, select, textarea {
   font-size: 1.25rem;
   font-weight: 500 !important;
   letter-spacing: -0.025em;
-  color: #ffffff;
+  color: var(--text-color);
   text-transform: lowercase;
+}
+
+.nano-title span:not([style*="color"]) {
+  color: var(--text-color) !important;
 }
 
 .nano-btn-full {
@@ -309,12 +334,20 @@ html, body, button, input, select, textarea {
   text-transform: lowercase;
 }
 
+.nano-home-title-large span:not([style*="color"]) {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-theme="light"] .nano-home-title-large span:not([style*="color"]) {
+  color: rgba(0, 0, 0, 0.65) !important;
+}
+
 .nano-search-form {
   width: 100%;
   max-width: 640px;
   display: flex;
   align-items: center;
-  background-color: var(--btn-bg);
+  background-color: var(--search-bg);
   border-radius: 9999px !important;
   padding: 4px 6px;
   margin-bottom: 20px;
@@ -1131,6 +1164,12 @@ html, body, button, input, select, textarea {
   white-space: nowrap;
   letter-spacing: -0.04em;
 }
+
+.nano-bottom-cutoff span:not([style*="color"]),
+.nano-bottom-cutoff-right span:not([style*="color"]) {
+  color: var(--watermark-color) !important;
+}
+
 @media (min-width: 1024px) {
   .nano-watermark-container {
     display: block;
@@ -1344,8 +1383,8 @@ html, body, button, input, select, textarea {
   border: none;
   box-shadow: none;
   color: var(--text-muted);
-  padding: 6px 14px;
-  border-radius: 12px !important;
+  padding: 8px 20px;
+  border-radius: 19px !important;
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;

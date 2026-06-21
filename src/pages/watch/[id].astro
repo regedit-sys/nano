@@ -13,7 +13,7 @@ const season = Astro.url.searchParams.get('season') || '1';
 const episode = Astro.url.searchParams.get('episode') || '1';
 ---
 
-<html lang={poprinkConfig.metadata.defaultLocale || 'en'}>
+<html lang={poprinkConfig.metadata.defaultLocale || 'en'} dir={(poprinkConfig.metadata.defaultLocale || 'en') === 'ar' ? 'rtl' : 'ltr'}>
   <head>
     <script is:inline define:vars={{ config: poprinkConfig }}>
       window.__POPRINK_CONFIG__ = config;

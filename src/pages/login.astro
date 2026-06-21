@@ -11,7 +11,7 @@ const locale = Astro.cookies.get('poprink-locale')?.value || poprinkConfig.metad
 const t = TRANSLATIONS[locale] || TRANSLATIONS.en;
 ---
 
-<html lang={locale}>
+<html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'}>
   <head>
     <script is:inline define:vars={{ config: poprinkConfig }}>
       window.__POPRINK_CONFIG__ = config;

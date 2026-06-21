@@ -4,7 +4,7 @@ const getEnv = (key: string, defaultValue: any) => {
   if (!isServer) {
     return (window as any).__POPRINK_CONFIG__?.[key] ?? defaultValue;
   }
-  const val = process.env[key];
+  const val = (import.meta as any).env?.[key] ?? process.env[key];
   if (val === undefined) return defaultValue;
   if (val === "true") return true;
   if (val === "false") return false;
@@ -23,6 +23,7 @@ export interface PoprinkConfig {
     };
     bgStyle?: "dots" | "lines" | "thin-lines" | "text" | "grain" | "none";
     customBg?: string;
+    fontFamily?: string;
   };
   logo: {
     text: string;
@@ -33,6 +34,10 @@ export interface PoprinkConfig {
     greetingStyle?: "slogans" | "logo" | "icon" | "gif" | "logo-and-icon";
     customIcon?: string;
     customGif?: string;
+    customGifWidth?: string;
+    customGifHeight?: string;
+    customGifMargin?: string;
+    fontFamily?: string;
   };
   metadata: {
     title: string;
@@ -59,16 +64,17 @@ export interface PoprinkConfig {
   };
 }
 
-export const poprinkConfig: PoprinkConfig = {
+const configObject: PoprinkConfig = {
   theme: {
     defaultHue: getEnv("THEME_HUE", 310),
     defaultMode: getEnv("THEME_MODE", "dark") as "dark" | "light",
     colors: {
       bgDark: getEnv("COLOR_BG_DARK", "#16161a"),
-      bgLight: getEnv("COLOR_BG_LIGHT", "#f8f9fa"),
+      bgLight: getEnv("COLOR_BG_LIGHT", "#faf8f8"),
     },
     bgStyle: getEnv("THEME_BG_STYLE", "none") as any,
     customBg: getEnv("THEME_CUSTOM_BG", ""),
+    fontFamily: getEnv("THEME_FONT_FAMILY", ""),
   },
   logo: {
     text: getEnv("SITE_NAME", "poprink"),
@@ -76,9 +82,13 @@ export const poprinkConfig: PoprinkConfig = {
     useMixedFancyFont: getEnv("USE_MIXED_FANCY_FONT", true),
     size: getEnv("LOGO_SIZE", "lg") as "sm" | "md" | "lg" | "xl",
     showGreeting: getEnv("SHOW_GREETING", true),
-    greetingStyle: getEnv("GREETING_STYLE", "slogans") as any,
+    greetingStyle: (getEnv("GREETING_STYLE", "") || (getEnv("CUSTOM_GIF", "") ? "gif" : getEnv("CUSTOM_ICON", "") ? "icon" : "slogans")) as any,
     customIcon: getEnv("CUSTOM_ICON", ""),
     customGif: getEnv("CUSTOM_GIF", ""),
+    customGifWidth: getEnv("CUSTOM_GIF_WIDTH", ""),
+    customGifHeight: getEnv("CUSTOM_GIF_HEIGHT", ""),
+    customGifMargin: getEnv("CUSTOM_GIF_MARGIN", ""),
+    fontFamily: getEnv("LOGO_FONT_FAMILY", ""),
   },
   metadata: {
     title: getEnv("METADATA_TITLE", "poprink nano"),
@@ -106,3 +116,7 @@ export const poprinkConfig: PoprinkConfig = {
     },
   },
 };
+
+export const poprinkConfig: PoprinkConfig = !isServer && (window as any).__POPRINK_CONFIG__
+  ? (window as any).__POPRINK_CONFIG__
+  : configObject;

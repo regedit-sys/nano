@@ -100,8 +100,16 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
   }, [themeMode])
 
   useEffect(() => {
+    document.documentElement.lang = locale
+    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr"
+  }, [locale])
+
+  useEffect(() => {
     document.documentElement.style.setProperty("--bg-color-config-dark", poprinkConfig.theme.colors.bgDark)
     document.documentElement.style.setProperty("--bg-color-config-light", poprinkConfig.theme.colors.bgLight)
+    if (poprinkConfig.theme.fontFamily) {
+      document.documentElement.style.setProperty("--site-font", poprinkConfig.theme.fontFamily)
+    }
   }, [])
 
   const t = TRANSLATIONS[locale] || TRANSLATIONS.en
@@ -168,8 +176,13 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
     fetchTrending()
   }, [])
 
-  const renderMixedText = (text: string) => {
-    const fonts = ["font-array", "font-pencerio", "font-telma"]
+  const renderMixedText = (text: string, isGreeting: boolean = false) => {
+    if (locale === "ar" || locale === "hi" || locale === "th" || locale === "zh" || locale === "ja" || locale === "ko") {
+      return <span style={{ color: "var(--text-color)" }}>{text}</span>
+    }
+    const fonts = isGreeting
+      ? ["font-pencerio", "font-telma"]
+      : ["font-array", "font-pencerio", "font-telma"]
     return text.split("").map((char, index) => {
       if (char === " ") {
         return <span key={index}>&nbsp;</span>
@@ -318,9 +331,22 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
                   </div>
                 );
               }
-              case "gif":
+              case "gif": {
+                const customW = poprinkConfig.logo?.customGifWidth;
+                const customH = poprinkConfig.logo?.customGifHeight;
+                const customMargin = poprinkConfig.logo?.customGifMargin;
                 return (
-                  <div className="nano-home-logo-large" style={{ width: sizePx, height: sizePx, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <div 
+                    className="nano-home-logo-large" 
+                    style={{ 
+                      width: customW || sizePx, 
+                      height: customH || sizePx, 
+                      margin: customMargin || undefined,
+                      display: "flex", 
+                      justifyContent: "center", 
+                      alignItems: "center" 
+                    }}
+                  >
                     <img 
                       src={poprinkConfig.logo?.customGif || "/icons/poprink.svg"} 
                       alt="custom" 
@@ -328,6 +354,7 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
                     />
                   </div>
                 );
+              }
               case "logo-and-icon": {
                 const IconComponent = ICON_MAP[poprinkConfig.logo?.customIcon?.toLowerCase() || ""] || FaFilm;
                 return (
@@ -345,7 +372,7 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
                         textAlign: "center"
                       }}
                     >
-                      {poprinkConfig.logo?.useMixedFancyFont ? renderMixedText(poprinkConfig.logo.text) : <span style={{ color: "var(--text-color)" }}>{poprinkConfig.logo.text}</span>}
+                      {poprinkConfig.logo?.useMixedFancyFont ? renderMixedText(poprinkConfig.logo.text) : <span style={{ color: "var(--text-color)", fontFamily: poprinkConfig.logo?.fontFamily || undefined }}>{poprinkConfig.logo.text}</span>}
                     </div>
                   </div>
                 );
@@ -377,11 +404,15 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
                       text={logoText}
                       renderText={(scrambled) =>
                         poprinkConfig.logo?.showGreeting ? (
-                          renderMixedText(scrambled)
+                          poprinkConfig.logo?.useMixedFancyFont ? (
+                            renderMixedText(scrambled, true)
+                          ) : (
+                            <span style={{ color: "var(--text-color)", fontFamily: poprinkConfig.logo?.fontFamily || undefined }}>{scrambled}</span>
+                          )
                         ) : poprinkConfig.logo?.useMixedFancyFont ? (
-                          renderMixedText(scrambled)
+                          renderMixedText(scrambled, false)
                         ) : (
-                          <span style={{ color: "var(--text-color)" }}>{scrambled}</span>
+                          <span style={{ color: "var(--text-color)", fontFamily: poprinkConfig.logo?.fontFamily || undefined }}>{scrambled}</span>
                         )
                       }
                     />
