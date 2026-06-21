@@ -14,7 +14,7 @@ if (process.env.VERCEL) {
 }
 
 const getAdapter = () => {
-  if (process.env.CF_PAGES || process.env.CLOUDFLARE) {
+  if (process.env.CF_PAGES || process.env.CLOUDFLARE || process.env.WORKERS_CI) {
     return cloudflare();
   }
   if (process.env.VERCEL) {
@@ -32,7 +32,7 @@ export default defineConfig({
   vite: {
     resolve: {
       alias: {
-        ...(process.env.CF_PAGES || process.env.CLOUDFLARE
+        ...(process.env.CF_PAGES || process.env.CLOUDFLARE || process.env.WORKERS_CI
           ? {
               '@vidstack/react/player/layouts/default': fileURLToPath(
                 new URL('./src/components/poprink/video-player/vidstack-mock.tsx', import.meta.url)
