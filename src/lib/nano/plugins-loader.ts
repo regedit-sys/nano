@@ -4,7 +4,7 @@ export interface ScraperPlugin {
   enabled: boolean;
   rank: number;
   isDirect: boolean;
-  fetchStream: (id: string, season?: string, episode?: string) => Promise<{ url: string; isM3U8: boolean } | null>;
+  fetchStream: (id: string, season?: string, episode?: string) => Promise<{ url: string; isM3U8: boolean; subtitles?: Array<{ src: string; label: string; language: string }> } | null>;
 }
 
 export function getPlugins(): ScraperPlugin[] {

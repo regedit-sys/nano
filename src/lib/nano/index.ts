@@ -5,6 +5,7 @@ export type StreamResult = {
   url: string;
   isDirect: boolean;
   isM3U8: boolean;
+  subtitles: Array<{ src: string; label: string; language: string }>;
 };
 
 export async function resolveStream(
@@ -16,8 +17,8 @@ export async function resolveStream(
 ): Promise<StreamResult> {
   if (providerId === "vidzeeWorks") {
     const stream = await fetchVidzee(id, season, episode);
-    if (!stream) return { url: "", isDirect: false, isM3U8: false };
-    return { url: stream.url, isDirect: true, isM3U8: stream.isM3U8 };
+    if (!stream) return { url: "", isDirect: false, isM3U8: false, subtitles: [] };
+    return { url: stream.url, isDirect: true, isM3U8: stream.isM3U8, subtitles: [] };
   }
 
   const plugins = getPlugins();
@@ -26,11 +27,11 @@ export async function resolveStream(
     try {
       const stream = await plugin.fetchStream(id, season, episode);
       if (stream) {
-        return { url: stream.url, isDirect: plugin.isDirect, isM3U8: stream.isM3U8 };
+        return { url: stream.url, isDirect: plugin.isDirect, isM3U8: stream.isM3U8, subtitles: stream.subtitles || [] };
       }
     } catch (e) {
     }
   }
 
-  return { url: "", isDirect: false, isM3U8: false };
+  return { url: "", isDirect: false, isM3U8: false, subtitles: [] };
 }

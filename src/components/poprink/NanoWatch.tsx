@@ -46,6 +46,8 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
   const [currentEpisode, setCurrentEpisode] = useState(Number(episode) || 1)
   const [activeServer, setActiveServer] = useState(() => {
     const enabled = providerList.filter((p) => p.enabled)
+    const custom = enabled.find((p) => p.key !== "vidzeeWorks")
+    if (custom) return custom.key
     return poprinkConfig.features.videoPlayer.defaultServer || (enabled.length > 0 ? enabled[0].key : "vidzee")
   })
   const [playerUrl, setPlayerUrl] = useState("")
@@ -309,7 +311,6 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
         isTv={type === "tv"}
         showEpisodes={showEpisodes}
         setShowEpisodes={setShowEpisodes}
-        hideExtra={isDirectPlayer}
       />
 
       <div className="nano-watch-content" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
@@ -319,18 +320,6 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
             isDirect={isDirectPlayer}
             isM3U8={isM3U8}
             title={displayTitle}
-            servers={SERVERS}
-            activeServer={activeServer}
-            setActiveServer={setActiveServer}
-            isTv={type === "tv"}
-            showEpisodes={showEpisodes}
-            setShowEpisodes={setShowEpisodes}
-            info={info}
-            currentSeason={currentSeason}
-            currentEpisode={currentEpisode}
-            episodes={episodes}
-            handleSeasonChange={handleSeasonChange}
-            handleEpisodeSelect={handleEpisodeSelect}
             subtitles={subtitles}
           />
         ) : (

@@ -1722,3 +1722,19 @@ html[lang="ar"] .nano-home-title-large {
   border-color: var(--accent-color);
 }
 
+.nano-player-top-controls {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.2s ease-in-out;
+}
+
+
+
+
+
+
+
+
+
+
+
