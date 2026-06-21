@@ -23,6 +23,7 @@ interface PlayerProps {
   isTv?: boolean
   showEpisodes?: boolean
   setShowEpisodes?: (show: boolean) => void
+  subtitles?: any[]
 }
 
 export default function Player({
@@ -36,6 +37,7 @@ export default function Player({
   isTv = false,
   showEpisodes = false,
   setShowEpisodes,
+  subtitles = [],
 }: PlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -313,7 +315,19 @@ export default function Player({
         onCanPlay={() => setIsLoading(false)}
         onLoadedData={() => setIsLoading(false)}
         style={{ width: "100%", height: "100%" }}
-      />
+        crossOrigin="anonymous"
+      >
+        {subtitles.map((track, index) => (
+          <track
+            key={index}
+            src={track.src}
+            label={track.label}
+            srcLang={track.language || track.srclang}
+            kind="subtitles"
+            default={track.default}
+          />
+        ))}
+      </video>
 
       {isLoading && (
         <div className="nano-player-loading-overlay">

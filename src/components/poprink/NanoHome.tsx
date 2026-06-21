@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import type { FormEvent } from "react"
+import { getStoredHandle, storeHandle, clearStoredHandle, verifyPermission, loadRinkJson } from "../../lib/nano/local-library"
 import { 
   FaChevronDown, 
   FaTv, 
@@ -67,6 +68,45 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
   const [currentUser, setCurrentUser] = useState(initialUser)
   const [continueWatching, setContinueWatching] = useState<any[]>([])
   const [watchlist, setWatchlist] = useState<any[]>([])
+  const [localFolderHandle, setLocalFolderHandle] = useState<FileSystemDirectoryHandle | null>(null)
+  const [localFolderConnected, setLocalFolderConnected] = useState(false)
+  const [localItems, setLocalItems] = useState<any[]>([])
+
+  useEffect(() => {
+    async function initLocal() {
+      const handle = await getStoredHandle()
+      if (handle) {
+        setLocalFolderHandle(handle)
+        try {
+          const hasPerm = await verifyPermission(handle)
+          if (hasPerm) {
+            setLocalFolderConnected(true)
+            const items = await loadRinkJson(handle)
+            setLocalItems(items)
+          }
+        } catch (e) {}
+      }
+    }
+    initLocal()
+  }, [])
+
+  const handleConnectLocalFolder = async () => {
+    try {
+      const handle = await (window as any).showDirectoryPicker()
+      await storeHandle(handle)
+      setLocalFolderHandle(handle)
+      setLocalFolderConnected(true)
+      const items = await loadRinkJson(handle)
+      setLocalItems(items)
+    } catch (e) {}
+  }
+
+  const handleDisconnectLocalFolder = async () => {
+    await clearStoredHandle()
+    setLocalFolderHandle(null)
+    setLocalFolderConnected(false)
+    setLocalItems([])
+  }
 
   const loadLocalLists = () => {
     if (poprinkConfig.features.enableContinueWatching) {
@@ -84,10 +124,11 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
   }, [])
 
   const handleLocalCardClick = (item: any) => {
+    const providerParam = localFolderConnected ? "&provider=localFolder" : ""
     if (item.type === "tv") {
-      window.location.href = `/watch/${item.id}?type=tv&season=${item.season || 1}&episode=${item.episode || 1}`
+      window.location.href = `/watch/${item.id}?type=tv&season=${item.season || 1}&episode=${item.episode || 1}${providerParam}`
     } else {
-      window.location.href = `/watch/${item.id}?type=movie`
+      window.location.href = `/watch/${item.id}?type=movie${providerParam}`
     }
   }
 
@@ -342,6 +383,9 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
         renderMixedText={renderMixedText}
         onLoginClick={() => setLoginOpen(true)}
         enableAuth={poprinkConfig.features.enableAuth}
+        localFolderConnected={localFolderConnected}
+        onConnectLocalFolder={handleConnectLocalFolder}
+        onDisconnectLocalFolder={handleDisconnectLocalFolder}
       />
 
       {!activeQuery.trim() ? (
@@ -497,6 +541,24 @@ export default function NanoHome({ initialUser }: { initialUser?: string }) {
               >
                 anime
               </button>
+            </div>
+          )}
+
+          {localItems.length > 0 && (
+            <div style={{ marginBottom: "32px" }}>
+              <h2 className="nano-trending-title">Local Library</h2>
+              <MediaGrid
+                results={localItems.map(item => ({
+                  id: Number(item.id) || item.id,
+                  title: item.title,
+                  poster_path: item.poster || null,
+                  media_type: item.type,
+                }))}
+                t={t}
+                onClick={handleLocalCardClick}
+                getReleaseYear={() => null}
+                onWatchlistChange={loadLocalLists}
+              />
             </div>
           )}
 

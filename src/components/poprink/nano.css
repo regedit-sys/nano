@@ -712,10 +712,6 @@ html[lang="ar"] .nano-home-title-large {
   transition: opacity 0.3s ease;
 }
 
-.nano-watch-wrapper:hover .nano-watch-header {
-  opacity: 1;
-}
-
 .nano-watch-back-btn {
   color: #ffffff;
   background-color: rgba(0, 0, 0, 0.5);

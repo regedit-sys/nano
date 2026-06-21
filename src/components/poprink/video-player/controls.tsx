@@ -31,6 +31,25 @@ export default function Controls({
 }: ControlsProps) {
   const [serverOpen, setServerOpen] = useState(false);
   const serverRef = useRef<HTMLDivElement>(null);
+  const [isHeaderHovered, setIsHeaderHovered] = useState(false);
+  const [isMouseMoveActive, setIsMouseMoveActive] = useState(false);
+
+  useEffect(() => {
+    let timeout: any;
+    const handleMouseMove = () => {
+      setIsMouseMoveActive(true);
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        setIsMouseMoveActive(false);
+      }, 3000);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      clearTimeout(timeout);
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -42,10 +61,28 @@ export default function Controls({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const isVisible = isHeaderHovered || serverOpen || showEpisodes || isMouseMoveActive;
   const activeServerName = servers.find((s) => s.id === activeServer)?.name || activeServer;
 
   return (
-    <header className="nano-watch-header" style={{ opacity: 1, background: "linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)", backdropFilter: "none", WebkitBackdropFilter: "none", position: "absolute", top: 0, left: 0, right: 0, zIndex: 50 }}>
+    <header 
+      className={`nano-watch-header ${isVisible ? "visible" : ""}`} 
+      onMouseEnter={() => setIsHeaderHovered(true)}
+      onMouseLeave={() => setIsHeaderHovered(false)}
+      style={{ 
+        opacity: isVisible ? 1 : 0, 
+        pointerEvents: isVisible ? "auto" : "none",
+        transition: "opacity 0.3s ease",
+        background: "linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)", 
+        backdropFilter: "none", 
+        WebkitBackdropFilter: "none", 
+        position: "absolute", 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        zIndex: 50 
+      }}
+    >
       <button
         className="nano-watch-back-btn"
         onClick={() => window.location.href = "/"}

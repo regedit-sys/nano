@@ -10,6 +10,7 @@ export interface NanoProvider {
 
 const baseProviders: NanoProvider[] = [
   { key: "vidzeeWorks", name: "VidZee", enabled: true, rank: 1, isDirect: true },
+  { key: "localFolder", name: "Local Library", enabled: true, rank: 0, isDirect: true },
 ];
 
 export const providerList: NanoProvider[] = [

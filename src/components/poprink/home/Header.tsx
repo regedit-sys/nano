@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react"
-import { FaUser, FaSun, FaMoon, FaPalette, FaUndo, FaGlobe, FaCheck, FaEyeDropper } from "react-icons/fa"
+import { FaUser, FaSun, FaMoon, FaPalette, FaUndo, FaGlobe, FaCheck, FaEyeDropper, FaFolder, FaFolderOpen } from "react-icons/fa"
 import { poprinkConfig } from "../config.poprink"
 
 const LOCALE_LABELS: Record<string, string> = {
@@ -92,6 +92,9 @@ interface HeaderProps {
   renderMixedText?: (text: string, isGreeting?: boolean) => React.ReactNode
   onLoginClick?: () => void
   enableAuth?: boolean
+  localFolderConnected?: boolean
+  onConnectLocalFolder?: () => void
+  onDisconnectLocalFolder?: () => void
 }
 
 export default function Header({
@@ -109,6 +112,9 @@ export default function Header({
   renderMixedText,
   onLoginClick,
   enableAuth,
+  localFolderConnected = false,
+  onConnectLocalFolder,
+  onDisconnectLocalFolder,
 }: HeaderProps) {
   const [themeOpen, setThemeOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
@@ -158,6 +164,24 @@ export default function Header({
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        {(onConnectLocalFolder || onDisconnectLocalFolder) && (
+          <button 
+            className="nano-btn-full" 
+            onClick={localFolderConnected ? onDisconnectLocalFolder : onConnectLocalFolder}
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "6px", 
+              height: "36px",
+              padding: "0 12px",
+              fontSize: "0.85rem",
+              backgroundColor: localFolderConnected ? "rgba(255, 255, 255, 0.15)" : "var(--btn-bg)"
+            }}
+          >
+            {localFolderConnected ? <FaFolderOpen /> : <FaFolder />}
+            <span>{localFolderConnected ? t.connected || "Connected" : t.localFolder || "Local Folder"}</span>
+          </button>
+        )}
         {poprinkConfig.features.header?.showThemeToggle !== false && (
           <div
             className="nano-theme-toggle-pill"

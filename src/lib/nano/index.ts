@@ -25,7 +25,7 @@ export async function resolveStream(
   const plugin = plugins.find((p) => p.key === providerId);
   if (plugin && plugin.enabled) {
     try {
-      const stream = await plugin.fetchStream(id, season, episode);
+      const stream = await plugin.fetchStream(id, type, season, episode);
       if (stream) {
         return { url: stream.url, isDirect: plugin.isDirect, isM3U8: stream.isM3U8, subtitles: stream.subtitles || [] };
       }
