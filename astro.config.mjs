@@ -30,16 +30,22 @@ export default defineConfig({
   adapter: getAdapter(),
   integrations: [react()],
   vite: {
+    plugins: [
+      {
+        name: 'vidstack-cloudflare-fix',
+        config(config, { ssrBuild }) {
+          if (ssrBuild && (process.env.CF_PAGES || process.env.CLOUDFLARE || process.env.WORKERS_CI)) {
+            config.resolve = config.resolve || {};
+            config.resolve.alias = config.resolve.alias || {};
+            config.resolve.alias['@vidstack/react/player/layouts/default'] = fileURLToPath(
+              new URL('./node_modules/@vidstack/react/server/player/vidstack-default-layout.js', import.meta.url)
+            );
+          }
+        }
+      }
+    ],
     resolve: {
-      alias: {
-        ...(process.env.CF_PAGES || process.env.CLOUDFLARE || process.env.WORKERS_CI
-          ? {
-              '@vidstack/react/player/layouts/default': fileURLToPath(
-                new URL('./src/components/poprink/video-player/vidstack-mock.tsx', import.meta.url)
-              ),
-            }
-          : {}),
-      },
+      alias: {},
     },
     optimizeDeps: {
       include: [
@@ -58,6 +64,10 @@ export default defineConfig({
       },
     },
     ssr: {
+      noExternal: [
+        '@vidstack/react',
+        '@vidstack/react/player/layouts/default'
+      ],
       external: [
         'pg', 'pg-pool', 'pgpass', 'pg-cloudflare', 'split2',
         'fscreen', 'fs', 'path', 'events', 'dns', 'stream',
