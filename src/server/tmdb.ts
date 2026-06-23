@@ -76,6 +76,21 @@ export async function getDetailsTMDB(id: string, type: string, season: string) {
   return res.json();
 }
 
+export async function getExternalIdsTMDB(id: string, type: string) {
+  const { token, headers } = getHeadersToken();
+  const tmdbUrl = new URL(`https://api.themoviedb.org/3/${type}/${id}/external_ids`);
+  if (token.startsWith('eyJ')) {
+    headers.Authorization = `Bearer ${token}`;
+  } else {
+    tmdbUrl.searchParams.set('api_key', token);
+  }
+  const res = await fetch(tmdbUrl.toString(), { headers });
+  if (!res.ok) {
+    throw new Error(`TMDB returned ${res.status}`);
+  }
+  return res.json();
+}
+
 export async function getTrendingTMDB() {
   try {
     const { token, headers } = getHeadersToken();

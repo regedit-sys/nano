@@ -10,12 +10,16 @@ export interface ScraperPlugin {
 export function getPlugins(): ScraperPlugin[] {
   const plugins: ScraperPlugin[] = [];
   try {
-    const modules = import.meta.glob('/src/shade/*.ts', { eager: true });
+    const modules = import.meta.glob('/src/shade/**/*.ts', { eager: true });
     for (const path in modules) {
       if (path.includes('placeholder.ts')) continue;
       const mod = modules[path] as any;
       if (mod && mod.default) {
-        plugins.push(mod.default);
+        if (Array.isArray(mod.default)) {
+          plugins.push(...mod.default);
+        } else {
+          plugins.push(mod.default);
+        }
       }
     }
   } catch (e) {

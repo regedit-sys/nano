@@ -60,9 +60,11 @@ export default function Settings({
             style={{ display: "flex", flexDirection: "column", alignItems: "start" }}
           >
             <span>Episode {ep.episode_number}</span>
-            <span style={{ fontSize: "11px", color: "#666", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", width: "100%" }}>
-              {ep.name || `Episode ${ep.episode_number}`}
-            </span>
+            {ep.name && ep.name.toLowerCase().trim() !== `episode ${ep.episode_number}` && (
+              <span style={{ fontSize: "11px", color: "#666", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", width: "100%" }}>
+                {ep.name}
+              </span>
+            )}
           </button>
         ))}
       </div>

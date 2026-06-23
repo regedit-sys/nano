@@ -160,9 +160,9 @@ export async function deleteBrowserFile(key: string): Promise<void> {
   } catch {}
 }
 
-export async function verifyPermission(handle: FileSystemHandle, readWrite = false): Promise<boolean> {
+export async function verifyPermission(handle: any, readWrite = false): Promise<boolean> {
   if (typeof handle.queryPermission !== "function") return true;
-  const options: FileSystemHandlePermissionDescriptor = {
+  const options = {
     mode: readWrite ? "readwrite" : "read",
   };
   if ((await handle.queryPermission(options)) === "granted") {
@@ -203,13 +203,13 @@ export async function getLocalFileHandle(dirHandle: FileSystemDirectoryHandle, r
 export async function getLocalFileUrl(dirHandle: FileSystemDirectoryHandle, relativePath: string): Promise<string> {
   const fileHandle = await getLocalFileHandle(dirHandle, relativePath);
   const file = await fileHandle.getFile();
-  
+
   if (file.name.endsWith(".srt")) {
     const text = await file.text();
     const vttText = srtToVtt(text);
     const blob = new Blob([vttText], { type: "text/vtt" });
     return URL.createObjectURL(blob);
   }
-  
+
   return URL.createObjectURL(file);
 }

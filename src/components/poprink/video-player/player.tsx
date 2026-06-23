@@ -26,6 +26,193 @@ interface PlayerProps {
   subtitles?: any[]
 }
 
+interface ProgressBarProps {
+  currentTime: number
+  duration: number
+  buffered: number
+  onSeek: (time: number) => void
+}
+
+function ProgressBar({ currentTime, duration, buffered, onSeek }: ProgressBarProps) {
+  const progressRef = useRef<HTMLDivElement>(null)
+  const [hoverTime, setHoverTime] = useState<number | null>(null)
+  const [hoverX, setHoverX] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+
+  const progress = duration ? (currentTime / duration) * 100 : 0
+  const bufferedPercent = duration ? (buffered / duration) * 100 : 0
+
+  const getTimeFromEvent = useCallback((e: MouseEvent | React.MouseEvent) => {
+    if (!progressRef.current) return null
+    const rect = progressRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const percent = Math.max(0, Math.min(1, x / rect.width))
+    const validDuration = (isFinite(duration) && duration > 0) ? duration : 0
+    return { time: percent * validDuration, x }
+  }, [duration])
+
+  const getTimeFromTouch = useCallback((e: TouchEvent | React.TouchEvent) => {
+    if (!progressRef.current || !e.touches.length) return null
+    const rect = progressRef.current.getBoundingClientRect()
+    const x = e.touches[0].clientX - rect.left
+    const percent = Math.max(0, Math.min(1, x / rect.width))
+    const validDuration = (isFinite(duration) && duration > 0) ? duration : 0
+    return { time: percent * validDuration, x }
+  }, [duration])
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const result = getTimeFromEvent(e)
+      if (!result) return
+      setHoverTime(result.time)
+      setHoverX(result.x)
+      if (isDragging) {
+        onSeek(result.time)
+      }
+    },
+    [getTimeFromEvent, isDragging, onSeek]
+  )
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      e.preventDefault()
+      setIsDragging(true)
+      const result = getTimeFromEvent(e)
+      if (result) {
+        onSeek(result.time)
+      }
+    },
+    [getTimeFromEvent, onSeek]
+  )
+
+  const handleMouseLeave = useCallback(() => {
+    if (!isDragging) {
+      setHoverTime(null)
+    }
+  }, [isDragging])
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      e.stopPropagation()
+      setIsDragging(true)
+      const result = getTimeFromTouch(e)
+      if (result) {
+        setHoverTime(result.time)
+        setHoverX(result.x)
+        onSeek(result.time)
+      }
+    },
+    [getTimeFromTouch, onSeek]
+  )
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      e.stopPropagation()
+      const result = getTimeFromTouch(e)
+      if (result) {
+        setHoverTime(result.time)
+        setHoverX(result.x)
+        onSeek(result.time)
+      }
+    },
+    [getTimeFromTouch, onSeek]
+  )
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false)
+    setHoverTime(null)
+  }, [])
+
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return
+      const result = getTimeFromEvent(e)
+      if (result) {
+        setHoverTime(result.time)
+        setHoverX(result.x)
+        onSeek(result.time)
+      }
+    }
+
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        setIsDragging(false)
+        setHoverTime(null)
+      }
+    }
+
+    if (isDragging) {
+      window.addEventListener("mousemove", handleGlobalMouseMove)
+      window.addEventListener("mouseup", handleGlobalMouseUp)
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleGlobalMouseMove)
+      window.removeEventListener("mouseup", handleGlobalMouseUp)
+    }
+  }, [isDragging, getTimeFromEvent, onSeek])
+
+  const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return "00:00"
+    const hrs = Math.floor(seconds / 3600)
+    const mins = Math.floor((seconds % 3600) / 60)
+    const secs = Math.floor(seconds % 60)
+    const parts = []
+    if (hrs > 0) parts.push(hrs.toString().padStart(2, "0"))
+    parts.push(mins.toString().padStart(2, "0"))
+    parts.push(secs.toString().padStart(2, "0"))
+    return parts.join(":")
+  }
+
+  return (
+    <div className="nano-progress-container">
+      {hoverTime !== null && (
+        <div
+          className="nano-progress-tooltip"
+          style={{ left: hoverX }}
+        >
+          <div className="nano-progress-tooltip-inner">
+            {formatTime(hoverTime)}
+          </div>
+        </div>
+      )}
+
+      <div
+        ref={progressRef}
+        className={`nano-progress-track ${isDragging ? "dragging" : ""}`}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div
+          className="nano-progress-buffered"
+          style={{ width: `${bufferedPercent}%` }}
+        />
+
+        <div
+          className="nano-progress-current"
+          style={{ width: `${progress}%` }}
+        />
+
+        <div
+          className="nano-progress-handle"
+          style={{ left: `calc(${progress}% - 6px)` }}
+        />
+
+        {hoverTime !== null && (
+          <div
+            className="nano-progress-hover-line"
+            style={{ left: hoverX }}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function Player({
   embedUrl,
   isDirect,
@@ -43,17 +230,20 @@ export default function Player({
   const containerRef = useRef<HTMLDivElement>(null)
   const hlsRef = useRef<Hls | null>(null)
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const volumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const currentUrlRef = useRef<string>("")
 
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
+  const [buffered, setBuffered] = useState(0)
   const [volume, setVolume] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [showControls, setShowControls] = useState(true)
   const [serverOpen, setServerOpen] = useState(false)
+  const [showVolumeSlider, setShowVolumeSlider] = useState(false)
 
   const isHls = useCallback((url: string) => {
     return url.toLowerCase().includes(".m3u8") || url.toLowerCase().includes("/hls/")
@@ -120,12 +310,6 @@ export default function Player({
 
       hls.loadSource(url)
       hls.attachMedia(video)
-    } else if (isHlsUrl && video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = url
-      video.addEventListener("loadedmetadata", () => setIsLoading(false), { once: true })
-      video.addEventListener("canplay", () => setIsLoading(false), { once: true })
-      video.addEventListener("playing", () => setIsLoading(false), { once: true })
-      video.play().catch(() => {})
     } else {
       video.src = url
       video.addEventListener("loadedmetadata", () => setIsLoading(false), { once: true })
@@ -139,6 +323,7 @@ export default function Player({
     setIsPlaying(false)
     setCurrentTime(0)
     setDuration(0)
+    setBuffered(0)
     setIsLoading(true)
     if (embedUrl) attachSource(embedUrl, isM3U8)
   }, [embedUrl, isM3U8, attachSource])
@@ -151,6 +336,9 @@ export default function Player({
       }
       if (videoRef.current) {
         videoRef.current.src = ""
+      }
+      if (volumeTimeoutRef.current) {
+        clearTimeout(volumeTimeoutRef.current)
       }
     }
   }, [])
@@ -182,9 +370,19 @@ export default function Player({
     }
   }
 
+  const handleProgress = () => {
+    const video = videoRef.current
+    if (!video) return
+    if (video.buffered.length > 0) {
+      const end = video.buffered.end(video.buffered.length - 1)
+      setBuffered(end)
+    }
+  }
+
   const handleTimeUpdate = () => {
     if (!videoRef.current) return
     setCurrentTime(videoRef.current.currentTime)
+    handleProgress()
   }
 
   const handleDurationChange = () => {
@@ -192,11 +390,10 @@ export default function Player({
     setDuration(videoRef.current.duration)
   }
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSeek = (time: number) => {
     if (!videoRef.current) return
-    const val = parseFloat(e.target.value)
-    videoRef.current.currentTime = val
-    setCurrentTime(val)
+    videoRef.current.currentTime = time
+    setCurrentTime(time)
   }
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -267,6 +464,17 @@ export default function Player({
     }
   }, [])
 
+  const handleVolumeMouseEnter = () => {
+    if (volumeTimeoutRef.current) clearTimeout(volumeTimeoutRef.current)
+    setShowVolumeSlider(true)
+  }
+
+  const handleVolumeMouseLeave = () => {
+    volumeTimeoutRef.current = setTimeout(() => {
+      setShowVolumeSlider(false)
+    }, 300)
+  }
+
   const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return "00:00"
     const hrs = Math.floor(seconds / 3600)
@@ -310,6 +518,7 @@ export default function Player({
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
         onDurationChange={handleDurationChange}
+        onProgress={handleProgress}
         onWaiting={() => setIsLoading(true)}
         onPlaying={() => setIsLoading(false)}
         onCanPlay={() => setIsLoading(false)}
@@ -340,13 +549,11 @@ export default function Player({
           {title && <span className="nano-player-title">{title}</span>}
         </div>
 
-        <input
-          type="range"
-          min={0}
-          max={duration || 100}
-          value={currentTime}
-          onChange={handleSeek}
-          className="nano-player-slider"
+        <ProgressBar
+          currentTime={currentTime}
+          duration={duration}
+          buffered={buffered}
+          onSeek={handleSeek}
         />
 
         <div className="nano-controls-row">
@@ -354,19 +561,28 @@ export default function Player({
             {isPlaying ? <IoPause /> : <IoPlay />}
           </button>
 
-          <button className="nano-control-btn" onClick={toggleMute}>
-            {isMuted || volume === 0 ? <ImVolumeMute2 /> : <BiSolidVolumeFull />}
-          </button>
+          <div
+            className="nano-volume-container"
+            onMouseEnter={handleVolumeMouseEnter}
+            onMouseLeave={handleVolumeMouseLeave}
+          >
+            <button className="nano-control-btn" onClick={toggleMute}>
+              {isMuted || volume === 0 ? <ImVolumeMute2 /> : <BiSolidVolumeFull />}
+            </button>
 
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.05}
-            value={isMuted ? 0 : volume}
-            onChange={handleVolumeChange}
-            className="nano-volume-slider"
-          />
+            <div className={`nano-volume-slider-wrapper ${showVolumeSlider ? "visible" : ""}`}>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={isMuted ? 0 : volume}
+                onChange={handleVolumeChange}
+                className="nano-volume-slider"
+                style={{ "--volume-percent": `${(isMuted ? 0 : volume) * 100}%` } as React.CSSProperties}
+              />
+            </div>
+          </div>
 
           <span className="nano-player-time">
             {formatTime(currentTime)} / {formatTime(duration)}

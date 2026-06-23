@@ -895,7 +895,7 @@ html[lang="ar"] .nano-home-title-large {
   right: 0;
   z-index: 35;
   background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 60%, transparent 100%);
-  padding: 16px 24px;
+  padding: 16px 16px max(env(safe-area-inset-bottom), 12px) 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -927,37 +927,87 @@ html[lang="ar"] .nano-home-title-large {
   text-overflow: ellipsis;
 }
 
-.nano-player-slider {
-  -webkit-appearance: none;
+.nano-progress-container {
+  position: relative;
+  margin-bottom: 8px;
   width: 100%;
-  height: 4px;
-  border-radius: 9999px;
-  background-color: rgba(255, 255, 255, 0.2);
-  outline: none;
-  cursor: pointer;
-  transition: height 0.1s;
 }
 
-.nano-player-slider:hover {
+.nano-progress-tooltip {
+  position: absolute;
+  bottom: 12px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 50;
+}
+
+.nano-progress-tooltip-inner {
+  background-color: rgba(0, 0, 0, 0.9);
+  color: #ffffff;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-family: monospace;
+}
+
+.nano-progress-track {
+  position: relative;
+  height: 4px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: height 0.1s ease-in-out;
+}
+
+.nano-progress-track:hover {
   height: 6px;
 }
 
-.nano-player-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: #ffffff;
-  cursor: pointer;
+.nano-progress-track.dragging {
+  height: 8px;
 }
 
-.nano-player-slider::-moz-range-thumb {
+.nano-progress-buffered {
+  position: absolute;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.nano-progress-current {
+  position: absolute;
+  height: 100%;
+  background-color: var(--accent-color);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.nano-progress-handle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) scale(0);
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background-color: #ffffff;
-  cursor: pointer;
-  border: none;
+  background-color: var(--accent-color);
+  pointer-events: none;
+  transition: transform 0.1s ease-in-out;
+}
+
+.nano-progress-track:hover .nano-progress-handle,
+.nano-progress-track.dragging .nano-progress-handle {
+  transform: translateY(-50%) scale(1);
+}
+
+.nano-progress-hover-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
 }
 
 .nano-controls-row {
@@ -969,11 +1019,11 @@ html[lang="ar"] .nano-home-title-large {
 .nano-control-btn {
   background-color: transparent;
   border: none;
-  color: #cccccc;
-  font-size: 16px;
-  width: 36px;
-  height: 36px;
-  border-radius: 9999px !important;
+  color: #ffffff;
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -984,20 +1034,42 @@ html[lang="ar"] .nano-home-title-large {
 
 .nano-control-btn:hover {
   background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  color: var(--accent-color);
 }
 
 .nano-control-btn.active {
   background-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  color: var(--accent-color);
+}
+
+.nano-volume-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nano-volume-slider-wrapper {
+  display: flex;
+  align-items: center;
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: width 0.2s ease, opacity 0.2s ease, margin-left 0.2s ease;
+  margin-left: 0;
+}
+
+.nano-volume-slider-wrapper.visible {
+  width: 80px;
+  opacity: 1;
+  margin-left: 4px;
 }
 
 .nano-volume-slider {
   -webkit-appearance: none;
   width: 70px;
   height: 4px;
-  border-radius: 9999px;
-  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: linear-gradient(to right, var(--accent-color) 0%, var(--accent-color) var(--volume-percent, 100%), rgba(255, 255, 255, 0.2) var(--volume-percent, 100%), rgba(255, 255, 255, 0.2) 100%);
   outline: none;
   cursor: pointer;
 }
@@ -1007,7 +1079,7 @@ html[lang="ar"] .nano-home-title-large {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #ffffff;
+  background-color: var(--accent-color);
   cursor: pointer;
 }
 
@@ -1015,7 +1087,7 @@ html[lang="ar"] .nano-home-title-large {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #ffffff;
+  background-color: var(--accent-color);
   cursor: pointer;
   border: none;
 }
@@ -1089,7 +1161,7 @@ html[lang="ar"] .nano-home-title-large {
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  border-radius: 9999px !important;
+  border-radius: 12px !important;
   font-size: 0.85rem;
   font-weight: 500;
   color: #cccccc;
@@ -1107,8 +1179,8 @@ html[lang="ar"] .nano-home-title-large {
 }
 
 .nano-dropdown-item.active {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background-color: var(--accent-color);
+  color: #000000;
 }
 
 .nano-player-dropdown-episodes {
@@ -1127,7 +1199,7 @@ html[lang="ar"] .nano-home-title-large {
   border: none;
   color: #8a8a8a;
   padding: 4px 12px;
-  border-radius: 9999px !important;
+  border-radius: 12px !important;
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
@@ -1140,8 +1212,8 @@ html[lang="ar"] .nano-home-title-large {
 }
 
 .nano-episodes-season-btn.active {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background-color: var(--accent-color);
+  color: #000000;
 }
 
 .nano-episodes-scroll {

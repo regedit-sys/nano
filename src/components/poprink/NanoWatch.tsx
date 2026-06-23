@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react"
-import VidstackPlayer from "./video-player/vidstack-player"
-import Player from "./video-player/player"
-import Controls from "./video-player/controls"
-import Settings from "./video-player/settings"
+import { useState, useEffect, useRef } from "react"
+import { Player, Controls, Settings } from "@rinko67/rinke"
+import "@rinko67/rinke/dist/index.css"
 import "./nano.css"
 import { providerList } from "../../lib/nano/nano.poprink"
 import { poprinkConfig } from "./config.poprink"
@@ -119,7 +117,16 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
   const [msgIndex, setMsgIndex] = useState(0)
   const [subtitles, setSubtitles] = useState<any[]>([])
   const [retryTrigger, setRetryTrigger] = useState(0)
-  const playerType = poprinkConfig.features.videoPlayer.useVidstack ? "vidstack" : "default"
+  const [triedServers, setTriedServers] = useState<string[]>([])
+  const [serverStatuses, setServerStatuses] = useState<Record<string, "queued" | "checking" | "online" | "error">>(() => {
+    const initial: Record<string, "queued" | "checking" | "online" | "error"> = {}
+    SERVERS.forEach((s) => {
+      initial[s.id] = "queued"
+    })
+    return initial
+  })
+  const lastMediaKeyRef = useRef("")
+  const currentMediaKey = `${id}-${mediaType}-${currentSeason}-${currentEpisode}`
 
   useEffect(() => {
     const savedLocale = document.cookie
@@ -231,21 +238,46 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
 
   useEffect(() => {
     let cancelled = false
+    const isNewMedia = lastMediaKeyRef.current !== currentMediaKey
+    if (isNewMedia) {
+      lastMediaKeyRef.current = currentMediaKey
+      setTriedServers([])
+      setServerStatuses(() => {
+        const initial: Record<string, "queued" | "checking" | "online" | "error"> = {}
+        SERVERS.forEach((s) => {
+          initial[s.id] = s.id === activeServer ? "checking" : "queued"
+        })
+        return initial
+      })
+    }
+
     async function fetchScraped() {
       setScraping(true)
       setLocalFolderError("")
 
       const fallbackToNextServer = () => {
-        const currentIndex = SERVERS.findIndex((s) => s.id === activeServer)
-        if (currentIndex !== -1 && currentIndex < SERVERS.length - 1) {
-          const nextServer = SERVERS[currentIndex + 1]
-          setActiveServer(nextServer.id)
-        } else {
-          setPlayerUrl("")
-          setIsDirectPlayer(false)
-          setIsM3U8(false)
-          setScraping(false)
-        }
+        setTriedServers((prevTried) => {
+          const nextTried = [...prevTried, activeServer]
+          const nextUntriedServer = SERVERS.find((s) => !nextTried.includes(s.id))
+          if (nextUntriedServer) {
+            setServerStatuses((prev) => ({
+              ...prev,
+              [activeServer]: "error",
+              [nextUntriedServer.id]: "checking"
+            }))
+            setActiveServer(nextUntriedServer.id)
+          } else {
+            setServerStatuses((prev) => ({
+              ...prev,
+              [activeServer]: "error"
+            }))
+            setPlayerUrl("")
+            setIsDirectPlayer(false)
+            setIsM3U8(false)
+            setScraping(false)
+          }
+          return nextTried
+        })
       }
       
       if (activeServer === "localFolder") {
@@ -480,8 +512,20 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
       }
 
       setLocalFolderNeedsSetup(false)
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 8000)
+
+      setServerStatuses((prev) => ({
+        ...prev,
+        [activeServer]: "checking"
+      }))
+
       try {
-        const res = await fetch(`/api/scrape?id=${id}&type=${mediaType}&season=${currentSeason}&episode=${currentEpisode}&provider=${activeServer}`)
+        const res = await fetch(`/api/scrape?id=${id}&type=${mediaType}&season=${currentSeason}&episode=${currentEpisode}&provider=${activeServer}`, {
+          signal: controller.signal
+        })
+        clearTimeout(timeoutId)
+
         if (cancelled) return
         if (!res.ok) {
           fallbackToNextServer()
@@ -492,12 +536,17 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
           fallbackToNextServer()
           return
         }
+        setServerStatuses((prev) => ({
+          ...prev,
+          [activeServer]: "online"
+        }))
         setPlayerUrl(data.url)
         setIsDirectPlayer(data.isDirect || false)
         setIsM3U8(data.isM3U8 || false)
         setSubtitles(data.subtitles || [])
         setScraping(false)
       } catch {
+        clearTimeout(timeoutId)
         if (!cancelled) {
           fallbackToNextServer()
         }
@@ -694,17 +743,10 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
       )
     }
 
-    if (playerType === "vidstack") {
-      return (
-        <VidstackPlayer
-          embedUrl={playerUrl}
-          isDirect={isDirectPlayer}
-          isM3U8={isM3U8}
-          title={displayTitle}
-          subtitles={subtitles}
-        />
-      )
-    }
+    const serversWithStatus = SERVERS.map((s) => ({
+      ...s,
+      status: serverStatuses[s.id] || "queued",
+    }))
 
     return (
       <Player
@@ -712,13 +754,14 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
         isDirect={isDirectPlayer}
         isM3U8={isM3U8}
         title={displayTitle}
-        servers={SERVERS}
+        servers={serversWithStatus}
         activeServer={activeServer}
         setActiveServer={setActiveServer}
         isTv={mediaType === "tv"}
         showEpisodes={showEpisodes}
         setShowEpisodes={setShowEpisodes}
         subtitles={subtitles}
+        locale={locale}
       />
     )
   }
@@ -728,16 +771,22 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
       ? `${info?.title || ""} - Season ${currentSeason} Episode ${currentEpisode}`
       : info?.title || ""
 
+  const serversWithStatus = SERVERS.map((s) => ({
+    ...s,
+    status: serverStatuses[s.id] || "queued",
+  }))
+
   return (
     <div className="nano-watch-wrapper" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', margin: 0, padding: 0 }}>
       <Controls
         displayTitle={displayTitle}
-        servers={SERVERS}
+        servers={serversWithStatus}
         activeServer={activeServer}
         setActiveServer={setActiveServer}
         isTv={mediaType === "tv"}
         showEpisodes={showEpisodes}
         setShowEpisodes={setShowEpisodes}
+        hideExtra={false}
       />
 
       <div className="nano-watch-content" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
@@ -750,6 +799,7 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
             episodes={episodes}
             handleSeasonChange={handleSeasonChange}
             handleEpisodeSelect={handleEpisodeSelect}
+            onClose={() => setShowEpisodes(false)}
           />
         )}
       </div>

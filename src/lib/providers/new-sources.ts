@@ -30,7 +30,7 @@ function unpack(packed: string): string {
   const k = match[4].split("|");
   const e = parseInt(match[5], 10);
   const d = {};
-  const decrypt = (num: number) => {
+  const decrypt = (num: number): string => {
     return (num < a ? "" : decrypt(Math.floor(num / a))) + ((num % a) > 35 ? String.fromCharCode((num % a) + 29) : (num % a).toString(36));
   };
   while (c--) {
