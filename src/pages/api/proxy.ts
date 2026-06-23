@@ -1,5 +1,4 @@
 import type { APIRoute } from "astro"
-import https from "node:https"
 
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
@@ -40,61 +39,81 @@ async function fetchWithIpOverride(
   targetUrl: string,
   options: { method?: string; headers?: Record<string, string>; signal?: AbortSignal },
 ): Promise<Response> {
-  return new Promise((resolve, reject) => {
-    try {
-      const urlObj = new URL(targetUrl)
-      const ipList = ["129.121.103.59", "104.21.67.210", "172.67.181.33"]
-      const ip = ipList[Math.floor(Math.random() * ipList.length)]
-      
-      const requestHeaders = { ...options.headers }
-      requestHeaders["Host"] = urlObj.hostname
-      
-      const reqOptions: https.RequestOptions = {
-        hostname: ip,
-        port: 443,
-        path: urlObj.pathname + urlObj.search,
-        method: options.method || "GET",
-        servername: urlObj.hostname,
-        headers: requestHeaders,
-        rejectUnauthorized: false,
-      }
-      
-      const req = https.request(reqOptions, (res) => {
-        const chunks: any[] = []
-        res.on("data", (chunk) => chunks.push(chunk))
-        res.on("end", () => {
-          const buffer = Buffer.concat(chunks)
-          const headers = new Headers()
-          for (const [k, v] of Object.entries(res.headers)) {
-            if (Array.isArray(v)) {
-              v.forEach((val) => headers.append(k, val))
-            } else if (v !== undefined) {
-              headers.set(k, v)
+  // Check if we are running in Node.js
+  const isNode = typeof process !== "undefined" && process.versions && process.versions.node;
+  if (!isNode) {
+    return fetch(targetUrl, {
+      method: options.method || "GET",
+      headers: options.headers,
+      signal: options.signal,
+    });
+  }
+
+  try {
+    const moduleName = "node:https";
+    const https = await import(moduleName);
+    return new Promise((resolve, reject) => {
+      try {
+        const urlObj = new URL(targetUrl)
+        const ipList = ["129.121.103.59", "104.21.67.210", "172.67.181.33"]
+        const ip = ipList[Math.floor(Math.random() * ipList.length)]
+        
+        const requestHeaders = { ...options.headers }
+        requestHeaders["Host"] = urlObj.hostname
+        
+        const reqOptions = {
+          hostname: ip,
+          port: 443,
+          path: urlObj.pathname + urlObj.search,
+          method: options.method || "GET",
+          servername: urlObj.hostname,
+          headers: requestHeaders,
+          rejectUnauthorized: false,
+        }
+        
+        const req = https.request(reqOptions, (res: any) => {
+          const chunks: any[] = []
+          res.on("data", (chunk: any) => chunks.push(chunk))
+          res.on("end", () => {
+            const buffer = Buffer.concat(chunks)
+            const headers = new Headers()
+            for (const [k, v] of Object.entries(res.headers)) {
+              if (Array.isArray(v)) {
+                v.forEach((val) => headers.append(k, val))
+              } else if (v !== undefined) {
+                headers.set(k, v as string)
+              }
             }
-          }
-          resolve(
-            new Response(buffer, {
-              status: res.statusCode,
-              statusText: res.statusMessage,
-              headers,
-            }),
-          )
+            resolve(
+              new Response(buffer, {
+                status: res.statusCode,
+                statusText: res.statusMessage,
+                headers,
+              }),
+            )
+          })
         })
-      })
-      req.on("error", (err) => {
-        reject(err)
-      })
-      if (options.signal) {
-        options.signal.addEventListener("abort", () => {
-          req.destroy()
-          reject(new Error("aborted"))
+        req.on("error", (err: any) => {
+          reject(err)
         })
+        if (options.signal) {
+          options.signal.addEventListener("abort", () => {
+            req.destroy()
+            reject(new Error("aborted"))
+          })
+        }
+        req.end()
+      } catch (e) {
+        reject(e)
       }
-      req.end()
-    } catch (e) {
-      reject(e)
-    }
-  })
+    })
+  } catch (e) {
+    return fetch(targetUrl, {
+      method: options.method || "GET",
+      headers: options.headers,
+      signal: options.signal,
+    });
+  }
 }
 
 function rewriteM3U8(
