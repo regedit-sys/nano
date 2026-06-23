@@ -20,6 +20,9 @@ importers:
       '@astrojs/vercel':
         specifier: ^7.8.2
         version: 7.8.2(astro@4.16.19(@types/node@26.0.0)(rollup@4.62.2)(typescript@5.9.3))(react@18.3.1)(rollup@4.62.2)
+      '@rinko67/rinke':
+        specifier: ^1.1.2
+        version: 1.1.2(hls.js@1.6.16)(react-dom@18.3.1(react@18.3.1))(react-icons@5.6.0(react@18.3.1))(react@18.3.1)
       '@types/react':
         specifier: ^18.3.12
         version: 18.3.31
@@ -1030,6 +1033,14 @@ packages:
 
   '@poppinss/exception@1.2.3':
     resolution: {integrity: sha512-dCED+QRChTVatE9ibtoaxc+WkdzOSjYTKi/+uacHWIsfodVfpsueo3+DKpgU5Px8qXjgmXkSvhXvSCz3fnP9lw==}
+
+  '@rinko67/rinke@1.1.2':
+    resolution: {integrity: sha512-q9JDMD00qSq7ycc9nkdD2A4/pfvJio6r5ena92FoFLmTj5GK0N696wwJ3yMlBbzLiw6E5ITQZEYxMHuburoWFw==}
+    peerDependencies:
+      hls.js: ^1.6.0
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+      react-icons: ^5.0.0
 
   '@rolldown/pluginutils@1.0.0-beta.27':
     resolution: {integrity: sha512-+d0F4MKMCbeVUJwG96uQ4SgAznZNSq93I3V+9NHA4OpvqG8mRCpGdKmK8l/dl02h2CCDHwW2FqilnTyDcAnqjA==}
@@ -3528,6 +3539,13 @@ snapshots:
       supports-color: 10.2.2
 
   '@poppinss/exception@1.2.3': {}
+
+  '@rinko67/rinke@1.1.2(hls.js@1.6.16)(react-dom@18.3.1(react@18.3.1))(react-icons@5.6.0(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      hls.js: 1.6.16
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      react-icons: 5.6.0(react@18.3.1)
 
   '@rolldown/pluginutils@1.0.0-beta.27': {}
 
