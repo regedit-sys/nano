@@ -183,9 +183,16 @@ export const GET: APIRoute = async ({ request }) => {
       })
     }
 
+    let targetUrlObj: URL
+    try {
+      targetUrlObj = new URL(targetUrl)
+    } catch {
+      targetUrlObj = new URL(targetUrl, request.url)
+      targetUrl = targetUrlObj.href
+    }
+
     const isSegment = url.searchParams.get("isSegment") === "true" || isHlsMediaSegment(targetUrl)
 
-    const targetUrlObj = new URL(targetUrl)
     const headers: Record<string, string> = {
       "User-Agent": USER_AGENT,
       Accept: "*/*",

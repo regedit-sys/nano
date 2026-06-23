@@ -128,6 +128,31 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
   const lastMediaKeyRef = useRef("")
   const currentMediaKey = `${id}-${mediaType}-${currentSeason}-${currentEpisode}`
 
+  const fallbackToNextServer = useCallback(() => {
+    setTriedServers((prevTried) => {
+      const nextTried = [...prevTried, activeServer]
+      const nextUntriedServer = SERVERS.find((s) => !nextTried.includes(s.id))
+      if (nextUntriedServer) {
+        setServerStatuses((prev) => ({
+          ...prev,
+          [activeServer]: "error",
+          [nextUntriedServer.id]: "checking"
+        }))
+        setActiveServer(nextUntriedServer.id)
+      } else {
+        setServerStatuses((prev) => ({
+          ...prev,
+          [activeServer]: "error"
+        }))
+        setPlayerUrl("")
+        setIsDirectPlayer(false)
+        setIsM3U8(false)
+        setScraping(false)
+      }
+      return nextTried
+    })
+  }, [activeServer])
+
   useEffect(() => {
     const savedLocale = document.cookie
       .split("; ")
@@ -255,31 +280,6 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
       setScraping(true)
       setLocalFolderError("")
 
-      const fallbackToNextServer = () => {
-        setTriedServers((prevTried) => {
-          const nextTried = [...prevTried, activeServer]
-          const nextUntriedServer = SERVERS.find((s) => !nextTried.includes(s.id))
-          if (nextUntriedServer) {
-            setServerStatuses((prev) => ({
-              ...prev,
-              [activeServer]: "error",
-              [nextUntriedServer.id]: "checking"
-            }))
-            setActiveServer(nextUntriedServer.id)
-          } else {
-            setServerStatuses((prev) => ({
-              ...prev,
-              [activeServer]: "error"
-            }))
-            setPlayerUrl("")
-            setIsDirectPlayer(false)
-            setIsM3U8(false)
-            setScraping(false)
-          }
-          return nextTried
-        })
-      }
-      
       if (activeServer === "localFolder") {
         let browserItems = await getBrowserItems()
         if (localServerPath.trim()) {
@@ -762,6 +762,7 @@ export default function NanoWatch({ id, type, season, episode }: NanoWatchProps)
         setShowEpisodes={setShowEpisodes}
         subtitles={subtitles}
         locale={locale}
+        onError={fallbackToNextServer}
       />
     )
   }

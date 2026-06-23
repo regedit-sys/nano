@@ -24,6 +24,7 @@ interface PlayerProps {
   showEpisodes?: boolean
   setShowEpisodes?: (show: boolean) => void
   subtitles?: any[]
+  onError?: () => void
 }
 
 interface ProgressBarProps {
@@ -225,13 +226,33 @@ export default function Player({
   showEpisodes = false,
   setShowEpisodes,
   subtitles = [],
+  onError,
 }: PlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const hlsRef = useRef<Hls | null>(null)
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const volumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const loadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const currentUrlRef = useRef<string>("")
+
+  const clearLoadTimeout = useCallback(() => {
+    if (loadTimeoutRef.current) {
+      clearTimeout(loadTimeoutRef.current)
+      loadTimeoutRef.current = null
+    }
+  }, [])
+
+  const startLoadTimeout = useCallback(() => {
+    clearLoadTimeout()
+    loadTimeoutRef.current = setTimeout(() => {
+      const video = videoRef.current
+      if (video && (video.paused || video.readyState < 3)) {
+        onError?.()
+      }
+    }, 8000)
+  }, [onError, clearLoadTimeout])
+
 
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -254,6 +275,7 @@ export default function Player({
     if (!video) return
     currentUrlRef.current = url
     setIsLoading(true)
+    startLoadTimeout()
 
     if (hlsRef.current) {
       hlsRef.current.destroy()
@@ -283,6 +305,8 @@ export default function Player({
 
       hls.on(Hls.Events.ERROR, (_event, data) => {
         if (data.fatal) {
+          clearLoadTimeout()
+          onError?.()
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
               hls.startLoad()
@@ -301,23 +325,36 @@ export default function Player({
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setIsLoading(false)
+        clearLoadTimeout()
         video.play().catch(() => {})
       })
 
       hls.on(Hls.Events.FRAG_BUFFERED, () => {
         setIsLoading(false)
+        clearLoadTimeout()
       })
 
       hls.loadSource(url)
       hls.attachMedia(video)
     } else {
       video.src = url
-      video.addEventListener("loadedmetadata", () => setIsLoading(false), { once: true })
-      video.addEventListener("canplay", () => setIsLoading(false), { once: true })
-      video.addEventListener("playing", () => setIsLoading(false), { once: true })
+      const onLoaded = () => {
+        setIsLoading(false)
+        clearLoadTimeout()
+      }
+      video.addEventListener("loadedmetadata", onLoaded, { once: true })
+      video.addEventListener("canplay", onLoaded, { once: true })
+      video.addEventListener("playing", onLoaded, { once: true })
+      
+      const onNativeError = () => {
+        clearLoadTimeout()
+        onError?.()
+      }
+      video.addEventListener("error", onNativeError, { once: true })
+      
       video.play().catch(() => {})
     }
-  }, [isHls])
+  }, [isHls, startLoadTimeout, clearLoadTimeout, onError])
 
   useEffect(() => {
     setIsPlaying(false)
@@ -340,8 +377,9 @@ export default function Player({
       if (volumeTimeoutRef.current) {
         clearTimeout(volumeTimeoutRef.current)
       }
+      clearLoadTimeout()
     }
-  }, [])
+  }, [clearLoadTimeout])
 
   const showControlsDelayed = useCallback(() => {
     setShowControls(true)
