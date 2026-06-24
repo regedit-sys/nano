@@ -1,4 +1,4 @@
-import https from "node:https";
+
 import type { ScraperPlugin } from "../../lib/nano/plugins-loader";
 
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -16,13 +16,16 @@ const DULO_IPS = [
   "172.67.181.33",
 ];
 
-function nodeFetchWithIp(targetUrl: string, ip: string, host: string, options: any = {}): Promise<any> {
+async function nodeFetchWithIp(targetUrl: string, ip: string, host: string, options: any = {}): Promise<any> {
+  let https: any;
+  try { https = await import("node:https"); } catch(e) {}
   return new Promise((resolve, reject) => {
+    if (!https) return reject(new Error("no https"));
     try {
       const urlObj = new URL(targetUrl);
       const requestHeaders = { ...options.headers };
       requestHeaders["Host"] = host;
-      const reqOptions: https.RequestOptions = {
+      const reqOptions: any = {
         hostname: ip, port: 443, path: urlObj.pathname + urlObj.search,
         method: options.method || "GET", servername: host,
         headers: requestHeaders, rejectUnauthorized: false,
